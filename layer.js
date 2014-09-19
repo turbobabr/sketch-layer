@@ -3,349 +3,407 @@
 // (c) 2014 Andrey Shakhmin
 // May be freely distributed under the MIT license.
 
-function Layer(layer) {
+(function(){
+    var root = this;
 
-    var frame=layer.frame();
-    var sub=null;
-
-    if(layer.layers) {
-        sub = layer.layers().firstObject();
+    // Type checking & utility functions.
+    function isUndefined(obj) {
+        return obj === void 0;
     }
 
-    return {
-        // Type checking functions.
-        isUndefined: function(obj) {
-            return obj === void 0;
-        },
+    function isDefined(obj) {
+        return !isUndefined(obj);
+    }
 
-        isDefined: function(obj) {
-            return !this.isUndefined(obj);
-        },
+    function isNSObject(obj) {
+        return toString.call(obj)==="[object MOBoxedObject]";
+    }
 
-        // MSModelObject
-        objectID: function() {
-            return layer.objectID();
-        },
+    function isBoolean(obj) {
+        return toString.call(obj)==="[object Boolean]";
+    }
 
-        parent : function() {
-            return layer.parentGroup();
-        },
+    function isArray(obj) {
+        return Array.isArray(obj);
+    }
 
-        // MSRect
-        x: function(val) {
-            if(this.isDefined(val)) {
-                frame.x=val;
-                return this;
-            }
-            return frame.x();
-        },
-        y: function(val) {
-            if(this.isDefined(val)) {
-                frame.y=val;
-                return this;
-            }
-            return frame.y();
-        },
-        width: function(val) {
-            if(val) {
-                // frame.setWidth(val);
-                frame.width=val;
-                return this;
-            }
-            return frame.width();
-        },
-        height: function(val) {
-            if(val) {
-                // frame.setHeight(val);
-                frame.height=val;
-                return this;
-            }
-            return frame.height();
-        },
-        size: function(width,height,center) {
-            if(width || height) {
-                var height=height || width;
 
-                var mx=frame.midX(), my=frame.midY();
+    function Layer(layer) {
 
-                if(toString.call(height)=="[object Boolean]") {
-                    this.width(width).height(width);
-                    frame.midX=mx;
-                    frame.midY=my;
+        var frame=layer.frame();
+        var sub=null;
 
-                } else {
-                    this.width(width).height(height);
+        if(layer.layers) {
+            sub = layer.layers().firstObject();
+        }
+
+        return {
+
+            // General
+            isKindOfClass: function(obj) {
+                if(isArray(obj)) {
+                    for(var i=0;i<obj.length;i++) {
+                        if(layer.isKindOfClass(obj[i].class())) return true;
+                    }
+
+                    return false;
                 }
 
-                return this;
-            }
+                return layer.isKindOfClass(obj.class());
+            },
 
-            return frame.size();
-        },
+            layer: function() {
+                return layer;
+            },
 
-        scale: function(val) {
-            if(this.isUndefined(val)) return this;
-            frame.scaleBy(val);
+            // MSModelObject
+            objectID: function() {
+                return layer.objectID();
+            },
 
-            return this;
-        },
+            parent : function() {
+                return layer.parentGroup();
+            },
 
-        // top
-        top: function(val) {
-            if(this.isDefined(val)) {
-                // TODO: Have to check this.
-                var y=frame.y(),height=frame.height();
-                frame.y=val;
-                frame.height=y+height-val;
-                return this;
-            }
-            return frame.top();
-        },
+            // MSRect
+            x: function(val) {
+                if(isDefined(val)) {
+                    frame.x=val;
+                    return this;
+                }
+                return frame.x();
+            },
+            y: function(val) {
+                if(isDefined(val)) {
+                    frame.y=val;
+                    return this;
+                }
+                return frame.y();
+            },
+            width: function(val) {
+                if(val) {
+                    // frame.setWidth(val);
+                    frame.width=val;
+                    return this;
+                }
+                return frame.width();
+            },
+            height: function(val) {
+                if(val) {
+                    // frame.setHeight(val);
+                    frame.height=val;
+                    return this;
+                }
+                return frame.height();
+            },
+            size: function(width,height,center) {
+                if(width || height) {
+                    var height=height || width;
 
-        // left
-        left: function(val) {
-            if(this.isDefined(val)) {
-                // TODO: Have to check this.
-                var x=frame.x(),width=frame.width();
-                frame.x=val;
-                frame.width=x+width-val;
-                return this;
-            }
-            return frame.left();
-        },
-        // right
-        right: function(val) {
-            if(this.isDefined(val)) {
-                // TODO: Have to check this.
-                frame.width = val-frame.x();
-                return this;
-            }
-            return frame.x()+frame.width();
-        },
-        // bottom
-        bottom: function(val) {
-            if(this.isDefined(val)) {
-                // TODO: Have to check this.
-                frame.height = val-frame.y();
-                return this;
-            }
-            return frame.y()+frame.height();
-        },
+                    var mx=frame.midX(), my=frame.midY();
 
-        // TODO:
-        // minX
-        minX: function(val) {
-            if(this.isDefined(val)) {
-                frame.minX=val;
-                return this;
-            }
-            return frame.minX();
-        },
-        // maxX
-        maxX: function(val) {
-            if(this.isDefined(val)) {
-                frame.maxX=val;
-                return this;
-            }
-            return frame.maxX();
-        },
-        // minY
-        minY: function(val) {
-            if(this.isDefined(val)) {
-                frame.minY=val;
-                return this;
-            }
-            return frame.minY();
-        },
-        // maxY
-        maxY: function(val) {
-            if(this.isDefined(val)) {
-                frame.maxY=val;
-                return this;
-            }
-            return frame.maxY();
-        },
+                    if(toString.call(height)=="[object Boolean]") {
+                        this.width(width).height(width);
+                        frame.midX=mx;
+                        frame.midY=my;
 
-        subtractHeight: function(val) {
-            if(this.isDefined(val)) {
-                frame.subtractHeight(val);
-            }
-            return this;
-        },
-        addHeight: function(val) {
-            if(this.isDefined(val)) {
-                frame.addHeight(val);
-            }
-            return this;
-        },
-        subtractWidth: function(val) {
-            if(this.isDefined(val)) {
-                frame.subtractWidth(val);
-            }
-            return this;
-        },
-        addWidth: function(val) {
-            if(this.isDefined(val)) {
-                frame.addWidth(val);
-            }
-            return this;
-        },
-        subtractY: function(val) {
-            if(this.isDefined(val)) {
-                frame.subtractY(val);
-            }
-            return this;
-        },
-        addY: function(val) {
-            if(this.isDefined(val)) {
-                frame.addY(val);
-            }
-            return this;
-        },
-        subtractX: function(val) {
-            if(this.isDefined(val)) {
-                frame.subtractX(val);
-            }
-            return this;
-        },
-        addX: function(val) {
-            if(this.isDefined(val)) {
-                frame.addX(val);
-            }
-            return this;
-        },
+                    } else {
+                        this.width(width).height(height);
+                    }
 
-        // origin
-        // mid
-
-
-        proportions: function(val) {
-            return frame.width()/frame.height();
-        },
-
-
-        // MSRectShape.
-        radius: function(val) {
-            if(sub && sub.setFixedRadius) {
-                if(this.isDefined(val)) {
-                    sub.setFixedRadius(val);
-                    sub.resetPointsBasedOnUserInteraction();
                     return this;
                 }
 
-                return sub.fixedRadius();
-            }
+                return frame.size();
+            },
 
-            return;
-        },
+            scale: function(val) {
+                if(isUndefined(val)) return this;
+                frame.scaleBy(val);
 
-        // MSLayer
-        name: function(val) {
-            if(val) {
-                layer.setName(val);
                 return this;
-            }
-            return layer.name();
-        },
-        nameIsFixed: function(val) {
-            if(this.isDefined(val)) {
-                layer.setNameIsFixed(val);
+            },
+
+            // top
+            top: function(val) {
+                if(isDefined(val)) {
+                    // TODO: Have to check this.
+                    var y=frame.y(),height=frame.height();
+                    frame.y=val;
+                    frame.height=y+height-val;
+                    return this;
+                }
+                return frame.top();
+            },
+
+            // left
+            left: function(val) {
+                if(isDefined(val)) {
+                    // TODO: Have to check this.
+                    var x=frame.x(),width=frame.width();
+                    frame.x=val;
+                    frame.width=x+width-val;
+                    return this;
+                }
+                return frame.left();
+            },
+            // right
+            right: function(val) {
+                if(isDefined(val)) {
+                    // TODO: Have to check this.
+                    frame.width = val-frame.x();
+                    return this;
+                }
+                return frame.x()+frame.width();
+            },
+            // bottom
+            bottom: function(val) {
+                if(isDefined(val)) {
+                    // TODO: Have to check this.
+                    frame.height = val-frame.y();
+                    return this;
+                }
+                return frame.y()+frame.height();
+            },
+
+            midX: function(val) {
+                if(isDefined(val)) {
+                    frame.midX=val;
+                    return this;
+                }
+                return frame.midX();
+            },
+            midY: function(val) {
+                if(isDefined(val)) {
+                    frame.midY=val;
+                    return this;
+                }
+                return frame.midY();
+            },
+
+
+            minX: function(val) {
+                if(isDefined(val)) {
+                    frame.minX=val;
+                    return this;
+                }
+                return frame.minX();
+            },
+            maxX: function(val) {
+                if(isDefined(val)) {
+                    frame.maxX=val;
+                    return this;
+                }
+                return frame.maxX();
+            },
+            minY: function(val) {
+                if(isDefined(val)) {
+                    frame.minY=val;
+                    return this;
+                }
+                return frame.minY();
+            },
+            maxY: function(val) {
+                if(isDefined(val)) {
+                    frame.maxY=val;
+                    return this;
+                }
+                return frame.maxY();
+            },
+
+            subtractHeight: function(val) {
+                if(isDefined(val)) {
+                    frame.subtractHeight(val);
+                }
                 return this;
-            }
-            return layer.nameIsFixed();
-        },
-        visible: function(val) {
-
-            if(this.isDefined(val)) {
-                layer.setIsVisible(val);
+            },
+            addHeight: function(val) {
+                if(isDefined(val)) {
+                    frame.addHeight(val);
+                }
                 return this;
-            }
-            return layer.isVisible();
-        },
-        locked: function(val) {
-            if(this.isDefined(val)) {
-                layer.setIsLocked(val);
+            },
+            subtractWidth: function(val) {
+                if(isDefined(val)) {
+                    frame.subtractWidth(val);
+                }
                 return this;
-            }
-            return layer.isLocked();
-        },
-        flippedHorizontal: function(val) {
-            if(this.isDefined(val)) {
-                layer.setIsFlippedHorizontal(val);
+            },
+            addWidth: function(val) {
+                if(isDefined(val)) {
+                    frame.addWidth(val);
+                }
                 return this;
-            }
-            return layer.isFlippedHorizontal();
-        },
-        flippedVertical: function(val) {
-            if(this.isDefined(val)) {
-                layer.setIsFlippedVertical(val);
+            },
+            subtractY: function(val) {
+                if(isDefined(val)) {
+                    frame.subtractY(val);
+                }
                 return this;
-            }
-            return layer.isFlippedVertical();
-        },
-        rotation: function(val) {
-            if(this.isDefined(val)) {
-                layer.setRotation(val);
+            },
+            addY: function(val) {
+                if(isDefined(val)) {
+                    frame.addY(val);
+                }
                 return this;
-            }
-            return layer.rotation();
-        },
-
-        // MSLayer - operations.
-        selected: function(val) {
-            if(this.isDefined(val)) {
-                layer.setIsSelected(val);
+            },
+            subtractX: function(val) {
+                if(isDefined(val)) {
+                    frame.subtractX(val);
+                }
                 return this;
-            }
+            },
+            addX: function(val) {
+                if(isDefined(val)) {
+                    frame.addX(val);
+                }
+                return this;
+            },
 
-            return layer.isSelected();
-        },
+            // origin
+            // mid
 
-        select: function(val,byExpandingSelection) {
-            var byExpandingSelection = byExpandingSelection || false;
-            layer.select_byExpandingSelection(val,byExpandingSelection);
-            return this;
-        },
 
-        // TEXTURES TO EVERYONE! :)
-        pattern: function (img) {
-            if(this.isUndefined(img)) {
-                return layer.style().fill().image();
-            }
+            proportions: function(val) {
+                return frame.width()/frame.height();
+            },
 
-            var images=doc.documentData().images();
-            var rawImage,image;
+            centerByLayer: function(layer,round) {
+                var round = round || false;
+                // TODO:
+                return this;
+            },
 
-            // Is raw image?
-            if(toString.call(img)=="[object MOBoxedObject]" && img.className()=="NSImage") {
-                rawImage = img;
-            } else if(toString.call(img)=="[object String]") {
-                rawImage = NSImage.alloc().initWithContentsOfFile(img);
-            } else if(toString.call(img)=="[object MOBoxedObject]" && img.className()=="__NSCFString") {
-                rawImage = NSImage.alloc().initWithContentsOfFile(img);
-            } else if(img.className()=="NSURL") {
-                if(img.isFileURL()){
-                    rawImage = NSImage.alloc().initWithContentsOfURL(img);
-                } else {
 
-                    function request(url) {
-                        var request = NSURLRequest.requestWithURL(url);
-                        var response = NSURLConnection.sendSynchronousRequest_returningResponse_error(request, null, null);
-                        return response;
+            // MSRectShape.
+            radius: function(val) {
+                if(sub && sub.setFixedRadius) {
+                    if(isDefined(val)) {
+                        sub.setFixedRadius(val);
+                        sub.resetPointsBasedOnUserInteraction();
+                        return this;
                     }
 
-                    rawImage=NSImage.alloc().initWithData(request(img));
+                    return sub.fixedRadius();
                 }
+
+                return;
+            },
+
+            // MSLayer
+            name: function(val) {
+                if(val) {
+                    layer.setName(val);
+                    return this;
+                }
+                return layer.name();
+            },
+            nameIsFixed: function(val) {
+                if(isDefined(val)) {
+                    layer.setNameIsFixed(val);
+                    return this;
+                }
+                return layer.nameIsFixed();
+            },
+            visible: function(val) {
+
+                if(isDefined(val)) {
+                    layer.setIsVisible(val);
+                    return this;
+                }
+                return layer.isVisible();
+            },
+            locked: function(val) {
+                if(isDefined(val)) {
+                    layer.setIsLocked(val);
+                    return this;
+                }
+                return layer.isLocked();
+            },
+            flippedHorizontal: function(val) {
+                if(isDefined(val)) {
+                    layer.setIsFlippedHorizontal(val);
+                    return this;
+                }
+                return layer.isFlippedHorizontal();
+            },
+            flippedVertical: function(val) {
+                if(isDefined(val)) {
+                    layer.setIsFlippedVertical(val);
+                    return this;
+                }
+                return layer.isFlippedVertical();
+            },
+            rotation: function(val) {
+                if(isDefined(val)) {
+                    layer.setRotation(val);
+                    return this;
+                }
+                return layer.rotation();
+            },
+
+            selected: function(val) {
+                if(isDefined(val)) {
+                    layer.setIsSelected(val);
+                    return this;
+                }
+
+                return layer.isSelected();
+            },
+
+            // MSLayer - operations.
+            select: function(val,byExpandingSelection) {
+                var byExpandingSelection = byExpandingSelection || false;
+                layer.select_byExpandingSelection(val,byExpandingSelection);
+                return this;
+            },
+
+
+
+            // TEXTURES TO EVERYONE! :)
+            pattern: function (img) {
+                if(isUndefined(img)) {
+                    return layer.style().fill().image();
+                }
+
+                var images=doc.documentData().images();
+                var rawImage,image;
+
+                // Is raw image?
+                if(toString.call(img)=="[object MOBoxedObject]" && img.className()=="NSImage") {
+                    rawImage = img;
+                } else if(toString.call(img)=="[object String]") {
+                    rawImage = NSImage.alloc().initWithContentsOfFile(img);
+                } else if(toString.call(img)=="[object MOBoxedObject]" && img.className()=="__NSCFString") {
+                    rawImage = NSImage.alloc().initWithContentsOfFile(img);
+                } else if(img.className()=="NSURL") {
+                    if(img.isFileURL()){
+                        rawImage = NSImage.alloc().initWithContentsOfURL(img);
+                    } else {
+
+                        function request(url) {
+                            var request = NSURLRequest.requestWithURL(url);
+                            var response = NSURLConnection.sendSynchronousRequest_returningResponse_error(request, null, null);
+                            return response;
+                        }
+
+                        rawImage=NSImage.alloc().initWithData(request(img));
+                    }
+                }
+
+                image=[images addImage:rawImage name:"Raster Image" convertColourspace:true];
+
+                var fill=layer.style().fill();
+                fill.setFillType(4);
+                fill.setImage(image);
+
+                return this;
             }
 
-            image=[images addImage:rawImage name:"Raster Image" convertColourspace:true];
-
-            var fill=layer.style().fill();
-            fill.setFillType(4);
-            fill.setImage(image);
-
-            return this;
         }
+    };
 
-    }
-};
+    root.Layer = Layer;
+
+}).call(this);
+
